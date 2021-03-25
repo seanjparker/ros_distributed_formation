@@ -64,7 +64,7 @@
 
 
 cmake_minimum_required(VERSION 2.8.3)
-project(exercises)
+project(mini_project)
 
 ################################################################################
 # Find catkin packages and libraries for catkin and system dependencies
