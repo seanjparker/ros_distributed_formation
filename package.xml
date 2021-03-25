@@ -2,8 +2,8 @@
 <package format="2">
   <name>exercises</name>
   <version>1.0.0</version>
-  <description>Exercises for Mobile Robots</description>
-  <maintainer email="asp45@cl.cam.ac.uk">asp45</maintainer>
+  <description>Mini-Project</description>
+  <maintainer email="sjp240@cam.ac.uk">sjp240</maintainer>
   <license>None</license>
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>rospy</build_depend>

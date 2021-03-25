@@ -80,12 +80,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ################################################################################
-# Setup for python modules and scripts
-################################################################################
-
-catkin_python_setup()
-
-################################################################################
 # Declare catkin specific configuration to be passed to dependent projects
 ################################################################################
 
@@ -112,27 +106,10 @@ include_directories(
 ################################################################################
 
 catkin_install_python(PROGRAMS
-  part0/ros/hello_world.py
-  part0/python/welcome.py
-  part0/python/numpy_reminder.py
-  part0/python/plotting.py
-  part0/python/helper.py
-  part1/ros/obstacle_avoidance.py
-  part1/ros/localization.py
-  part1/ros/plot_trajectory.py
-  part1/python/kinematics.py
-  part2/ros/receive_clock.py
-  part2/ros/potential_field_navigation.py
-  part2/ros/rrt_navigation.py
-  part2/ros/stop.py
-  part2/ros/send_clock.py
-  part2/ros/plot_trajectory.py
-  part2/python/potential_field.py
-  part2/python/rrt.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 install(DIRECTORY 
-    part0 part1 part2
+    ros python
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
