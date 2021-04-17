@@ -39,70 +39,6 @@ X = 0
 Y = 1
 YAW = 2
 
-
-def get_velocity(position, path_points):
-  v = np.zeros_like(position)
-  if len(path_points) == 0:
-    return v
-  # Stop moving if the goal is reached.
-  if np.linalg.norm(position - path_points[-1]) < .2:
-    return v
-
-  # MISSING: Return the velocity needed to follow the
-  # path defined by path_points. Assume holonomicity of the
-  # point located at position.
-
-  return v
-
-
-class SLAM(object):
-  def __init__(self):
-    rospy.Subscriber('/map', OccupancyGrid, self.callback)
-    self._tf = TransformListener()
-    self._occupancy_grid = None
-    self._pose = np.array([np.nan, np.nan, np.nan], dtype=np.float32)
-    
-  def callback(self, msg):
-    values = np.array(msg.data, dtype=np.int8).reshape((msg.info.width, msg.info.height))
-    processed = np.empty_like(values)
-    processed[:] = rrt.FREE
-    processed[values < 0] = rrt.UNKNOWN
-    processed[values > 50] = rrt.OCCUPIED
-    processed = processed.T
-    origin = [msg.info.origin.position.x, msg.info.origin.position.y, 0.]
-    resolution = msg.info.resolution
-    self._occupancy_grid = rrt.OccupancyGrid(processed, origin, resolution)
-
-  def update(self):
-    # Get pose w.r.t. map.
-    a = 'occupancy_grid'
-    b = 'base_link'
-    if self._tf.frameExists(a) and self._tf.frameExists(b):
-      try:
-        t = rospy.Time(0)
-        position, orientation = self._tf.lookupTransform('/' + a, '/' + b, t)
-        self._pose[X] = position[X]
-        self._pose[Y] = position[Y]
-        _, _, self._pose[YAW] = euler_from_quaternion(orientation)
-      except Exception as e:
-        print(e)
-    else:
-      print('Unable to find:', self._tf.frameExists(a), self._tf.frameExists(b))
-    pass
-
-  @property
-  def ready(self):
-    return self._occupancy_grid is not None and not np.isnan(self._pose[0])
-
-  @property
-  def pose(self):
-    return self._pose
-
-  @property
-  def occupancy_grid(self):
-    return self._occupancy_grid
-
-
 class GoalPose(object):
   def __init__(self):
     rospy.Subscriber('/move_base_simple/goal', PoseStamped, self.callback)
@@ -142,7 +78,7 @@ class SimpleLaser(object):
       b %= pi2
       if a < b:
         return a <= x and x <= b
-      return a <= x or x <= b;
+      return a <= x or x <= b
 
     # Compute indices the first time.
     if self._indices is None:
@@ -173,10 +109,6 @@ class SimpleLaser(object):
   def coordinates(self):
     return self._coordinates
 
-  @property
-  def obstacles(self):
-    return None
-  
 
 def run(args):
   robot_id = args.robot
@@ -187,7 +119,6 @@ def run(args):
   rate_limiter = rospy.Rate(100)
   publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
   path_publisher = rospy.Publisher('/path', Path, queue_size=1)
-  slam = SLAM()
   goal = GoalPose()
   frame_id = 0
   current_path = []
@@ -241,7 +172,7 @@ def run(args):
     previous_time = current_time
 
     # Run RRT.
-    start_node, final_node = rrt.rrt(slam.pose, goal.position, slam.occupancy_grid)
+    # start_node, final_node = rrt.rrt(slam.pose, goal.position, slam.occupancy_grid)
     current_path = get_path(final_node)
     if not current_path:
       print('Unable to reach goal position:', goal.position)
