@@ -112,6 +112,13 @@ class SimpleLaser(object):
     return self._coordinates
 
 
+current_time = 0
+previous_detection_time = 0
+previous_publish_time = 0
+
+current_control_time = 0
+previous_control_time = 0
+
 def run(args):
   robot_id = args.robot
 
@@ -151,37 +158,34 @@ def run(args):
     if not laser.ready:
       rate_limiter.sleep()
       continue
-
-    goal_reached = np.linalg.norm(slam.pose[:2] - goal.position) < .2
-    if not :
-      publisher.publish(stop_msg)
-      rate_limiter.sleep()
-      continue
-
-    # Follow path using feedback linearization.
-    position = np.array([
-        slam.pose[X] + EPSILON * np.cos(slam.pose[YAW]),
-        slam.pose[Y] + EPSILON * np.sin(slam.pose[YAW])], dtype=np.float32)
-    v = get_velocity(position, np.array(current_path, dtype=np.float32))
-    u, w = feedback_linearized(slam.pose, v, epsilon=EPSILON)
-    vel_msg = Twist()
-    vel_msg.linear.x = u
-    vel_msg.angular.z = w
-    publisher.publish(vel_msg)
-
-    # Update plan every 1s.
-    time_since = current_time - previous_time
-    if current_path and time_since < 2.:
-      rate_limiter.sleep()
-      continue
-    previous_time = current_time
-
-    # Run RRT.
-    # start_node, final_node = rrt.rrt(slam.pose, goal.position, slam.occupancy_grid)
-    current_path = get_path(final_node)
-    if not current_path:
-      print('Unable to reach goal position:', goal.position)
     
+    time_since = current_time - previous_detection_time
+    if time_since > 0.3:
+      detector.find_goal(laser.coordinates)
+      previous_detection_time = current_time
+      
+    if not detector.ready:
+     rate_limiter.sleep()
+     continue
+
+    goal_position = detector.goal_pose
+    print("goal: {}".format(goal_position))
+
+    time_since = current_time - previous_publish_time
+    if time_since > 0.2:
+      previous_control_time = current_control_time
+      current_control_time = rospy.Time.now().to_sec()
+      dt = current_control_time - previous_control_time
+      # obstacle list, pose, goal, dt
+      u, w = controller.get_velocity(detector.obstacles, np.array([0,0,0], dtype=np.float32), goal_position, dt)
+
+      vel_msg = Twist()
+      vel_msg.linear.x = u
+      vel_msg.angular.z = w
+      publisher.publish(vel_msg)
+      previous_publish_time = current_time
+
+
     # Publish path to RViz.
     path_msg = Path()
     path_msg.header.seq = frame_id
