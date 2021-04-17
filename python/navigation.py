@@ -41,17 +41,6 @@ Y = 1
 YAW = 2
 
 
-def feedback_linearized(pose, velocity, epsilon):
-  u = 0.  # [m/s]
-  w = 0.  # [rad/s] going counter-clockwise.
-
-  # MISSING: Implement feedback-linearization to follow the velocity
-  # vector given as argument. Epsilon corresponds to the distance of
-  # linearized point in front of the robot.
-
-  return u, w
-
-
 def get_velocity(position, path_points):
   v = np.zeros_like(position)
   if len(path_points) == 0:
@@ -133,50 +122,12 @@ class GoalPose(object):
   @property
   def position(self):
     return self._position
-
-
-def get_path(final_node):
-  # Construct path from RRT solution.
-  if final_node is None:
-    return []
-  path_reversed = []
-  path_reversed.append(final_node)
-  while path_reversed[-1].parent is not None:
-    path_reversed.append(path_reversed[-1].parent)
-  path = list(reversed(path_reversed))
-  # Put a point every 5 cm.
-  distance = 0.05
-  offset = 0.
-  points_x = []
-  points_y = []
-  for u, v in zip(path, path[1:]):
-    center, radius = rrt.find_circle(u, v)
-    du = u.position - center
-    theta1 = np.arctan2(du[1], du[0])
-    dv = v.position - center
-    theta2 = np.arctan2(dv[1], dv[0])
-    # Check if the arc goes clockwise.
-    clockwise = np.cross(u.direction, du).item() > 0.
-    # Generate a point every 5cm apart.
-    da = distance / radius
-    offset_a = offset / radius
-    if clockwise:
-      da = -da
-      offset_a = -offset_a
-      if theta2 > theta1:
-        theta2 -= 2. * np.pi
-    else:
-      if theta2 < theta1:
-        theta2 += 2. * np.pi
-    angles = np.arange(theta1 + offset_a, theta2, da)
-    offset = distance - (theta2 - angles[-1]) * radius
-    points_x.extend(center[X] + np.cos(angles) * radius)
-    points_y.extend(center[Y] + np.sin(angles) * radius)
-  return zip(points_x, points_y)
   
 
 def run(args):
-  rospy.init_node('rrt_navigation')
+  robot_id = args.robot
+
+  rospy.init_node("{}_navigation".format(robot_id))
 
   # Update control every 100 ms.
   rate_limiter = rospy.Rate(100)
@@ -261,9 +212,9 @@ def run(args):
 
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(description='Runs RRT navigation')
-  args, unknown = parser.parse_known_args()
-  try:
-    run(args)
-  except rospy.ROSInterruptException:
-    pass
+  parser = argparse.ArgumentParser()
+  parser.add_argument('--robot', default='t_0')
+  parser.add_argument('--detector', default='dbscan',choices=['dbscan'])
+  parser.add_argument('--controller', default='dynamic', choices=['dynamic'])
+  args, _ = parser.parse_known_args()
+  main(args)
