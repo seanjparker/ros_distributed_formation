@@ -1,5 +1,15 @@
 import rvo
 import numpy as np
+import os
+import sys
+
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
+sys.path.insert(0, directory)
+try:
+  import params
+except ImportError:
+  raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
+
 
 X = 0
 Y = 1
@@ -8,10 +18,10 @@ YAW = 2
 epsilon = 1e-3
 epsilon_inv = 1.0 / epsilon
 
-def clip_u(val)
+def clip_u(val):
   return params.SPEED if val > params.SPEED else val
 
-def clip_w(val)
+def clip_w(val):
   if np.abs(w) > params.SPEED:
     return w / w * params.SPEED
   else:

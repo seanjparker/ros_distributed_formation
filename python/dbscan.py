@@ -1,4 +1,14 @@
 from sklearn.cluster import DBSCAN
+import os
+import sys
+
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
+sys.path.insert(0, directory)
+try:
+  import params
+except ImportError:
+  raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
+
 
 def dist(start, end):
   return np.sqrt( np.pow(start[X] - n[X], 2) + np.pow(start[Y] - end[Y], 2) )
@@ -12,7 +22,7 @@ class DBSCANDetector():
     np.seterr(all='warn')
 
   def find_goal(self, coordinates):
-    potential_followable = []
+    followable = []
     self._prev_pose = self._pose
 
     valid_coordinates = []
@@ -38,23 +48,23 @@ class DBSCANDetector():
       cluster_center = np.average(clusters, axis=0)
       distance = dist(center)
 
-      if distance < 1e-2 or distance > params.MAX_DISTANCE_TO_TARGET:
+      if distance < 1e-2 or distance > params.ROBOT_MAX_DIST:
         continue
 
-      potential_followable.append([cluster_center, distance])
+      followable.append([cluster_center, distance])
 
     self._pose = np.array([np.nan, np.nan], dtype=np.float32)
-    if potential_followable is None: 
+    if followable is None: 
       return
 
     first_time = np.isnan(self._prev_pose[0])
-    minimum = params.MAX_DISTANCE_TO_TARGET
+    boundary = params.ROBOT_MAX_DIST
 
-    for item in potential_followable:
-      if minimum > item[1]:
-        if dist(item[0], self._prev_pose) < params.MAX_TARGET_DISPLACEMENT or first_time: 
+    for item in followable:
+      if boundary > item[1]:
+        if dist(item[0], self._prev_pose) < params.ROBOT_MAX_DIST / 2 or first_time: 
           self._pose = item[0]
-          minimum = item[1]
+          boundary = item[1]
   
   @property
   def ready(self):

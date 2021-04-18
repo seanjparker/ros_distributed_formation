@@ -1,8 +1,8 @@
 <launch>
 
-  <arg name="Robot_0" default="r_0"/>
-  <arg name="Robot_1" default="r_1"/>
-  <arg name="Robot_2" default="r_2"/>
+  <arg name="Robot_0" default="tb3_0"/>
+  <arg name="Robot_1" default="tb3_1"/>
+  <arg name="Robot_2" default="tb3_2"/>
 
   <group ns="$(arg Robot_0)">
     <include file="$(find mini_project)/ros/launch/robot_config.launch" >

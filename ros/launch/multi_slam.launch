@@ -1,22 +1,20 @@
 <launch>
-
-  <!-- Start slam -->
   <include file="$(find turtlebot3_gazebo)/launch/multi_turtlebot3_slam.launch">
-    <arg name="ns" value="r_0"/>
+    <arg name="ns" value="tb3_0"/>
   </include>
   
   <include file="$(find turtlebot3_gazebo)/launch/multi_turtlebot3_slam.launch">
-    <arg name="ns" value="r_1"/>
+    <arg name="ns" value="tb3_1"/>
   </include>
   
   <include file="$(find turtlebot3_gazebo)/launch/multi_turtlebot3_slam.launch">
-    <arg name="ns" value="r_2"/>
+    <arg name="ns" value="tb3_2"/>
   </include>
 
 
-  <arg name="first_robot"  default="r_0"/>
-  <arg name="second_robot" default="r_1"/>
-  <arg name="third_robot"  default="r_2"/>
+  <arg name="first_robot"  default="tb3_0"/>
+  <arg name="second_robot" default="tb3_1"/>
+  <arg name="third_robot"  default="tb3_2"/>
 
   <group ns="$(arg first_robot)">
     <include file="$(find mini_project)/ros/launch/slam.launch">
