@@ -61,10 +61,10 @@ class GoalPose(object):
     return self._position
 
 class SimpleLaser(object):
-  def __init__(self, robot_id=config.R0):
+  def __init__(self, robot_id=parmas.R0):
     self._name_space = robot_id
     rospy.Subscriber(robot_id + '/scan', LaserScan, self.callback)
-    self._angles_degrees = np.array(range(0, config.ROBOT_FOV + 1, 2) + range(360 - config.ROBOT_FOV, 359, 2))
+    self._angles_degrees = np.array(range(0, parmas.ROBOT_FOV + 1, 2) + range(360 - parmas.ROBOT_FOV, 359, 2))
     self._angles = np.pi / 180. * self._angles_degrees
     self._width = np.pi / 180.
     self._measurements = [float('inf')] * len(self._angles)

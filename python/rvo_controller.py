@@ -27,7 +27,7 @@ class RVOController:
     self.last_speed = [0, 0]
 
   def get_velocity(self, obstacle_list, pose, goal, dt):
-    if np.sqrt(goal_position[config.X] ** 2 + goal_position[config.Y]**2) <= config.MIN_DISTANCE_TO_TARGET: 
+    if np.sqrt(goal_position[X] ** 2 + goal_position[Y]**2) <= params.ROBOT_MIN_DIST: 
       return 0, 0
 
     if obstacle_list is None:
