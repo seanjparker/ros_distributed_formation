@@ -1,6 +1,7 @@
 from sklearn.cluster import DBSCAN
 import os
 import sys
+import numpy as np
 
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
 sys.path.insert(0, directory)

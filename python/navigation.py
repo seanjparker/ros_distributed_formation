@@ -23,6 +23,7 @@ from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 # For pose information.
 from tf.transformations import euler_from_quaternion
+from sensor_msgs.msg import LaserScan
 
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
 sys.path.insert(0, directory)
@@ -61,10 +62,10 @@ class GoalPose(object):
     return self._position
 
 class SimpleLaser(object):
-  def __init__(self, robot_id=parmas.R0):
+  def __init__(self, robot_id=params.R0):
     self._name_space = robot_id
     rospy.Subscriber(robot_id + '/scan', LaserScan, self.callback)
-    self._angles_degrees = np.array(range(0, parmas.ROBOT_FOV + 1, 2) + range(360 - parmas.ROBOT_FOV, 359, 2))
+    self._angles_degrees = np.array(range(0, params.ROBOT_FOV + 1, 2) + range(360 - params.ROBOT_FOV, 359, 2))
     self._angles = np.pi / 180. * self._angles_degrees
     self._width = np.pi / 180.
     self._measurements = [float('inf')] * len(self._angles)
@@ -119,7 +120,7 @@ previous_publish_time = 0
 current_control_time = 0
 previous_control_time = 0
 
-def run(args):
+def main(args):
   robot_id = args.robot
 
   rospy.init_node("{}_navigation".format(robot_id))
