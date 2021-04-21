@@ -1,10 +1,10 @@
 #!/bin/bash
 
-roslaunch turtlebot3_formation main.launch &
-sleep 10
-roslaunch turtlebot3_formation multirobot_slam.launch &
+roslaunch mini_project gazebo.launch &
 sleep 5
+roslaunch mini_project multi_slam.launch &
+# sleep 5
 
-python python/navigation.py --robot=r_0 &
-python python/navigat   ion.py --robot=r_1 &
-python python/navigation.py --robot=r_2 &
+gnome-terminal -x sh -c "python python/navigation.py --robot=tb3_0; bash"
+# python python/navigation.py --robot=r_1 &
+# python python/navigation.py --robot=r_2 &

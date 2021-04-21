@@ -11,8 +11,12 @@ except ImportError:
   raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
 
 
+X = 0
+Y = 1
+YAW = 2
+
 def dist(start, end):
-  return np.sqrt( np.pow(start[X] - n[X], 2) + np.pow(start[Y] - end[Y], 2) )
+  return np.sqrt( (start[X] - end[X]) ** 2 + (start[Y] - end[Y]) ** 2 )
 
 class DBSCANDetector():
   def __init__(self, robot_id) : 
@@ -26,11 +30,8 @@ class DBSCANDetector():
     followable = []
     self._prev_pose = self._pose
 
-    valid_coordinates = []
-    for coord in coordinates:
-        valid_coordinates.append(0 if coord[0] is np.nan or coord[1] is np.nan else coord)
-    valid_coordinates = np.array(valid_coordinates)
-    coordinates = valid_coordinates[~np.all(valid_coordinates==0, axis=1)]
+    coordinates = np.nan_to_num(coordinates)
+    coordinates = coordinates[~np.all(coordinates==0, axis=1)]
 
 
     self._dbscan.fit(coordinates)
@@ -43,11 +44,11 @@ class DBSCANDetector():
 
       clusters = coordinates[labels_mask]
 
-      if len(clusters) < 3 or dist(clusters[0], clusters[-1]) > 2 *  params.LEG_RADIUS_MAX: 
+      if len(clusters) < 3 or dist(clusters[0], clusters[-1]) > 2 * 0.05: 
         continue 
 
       cluster_center = np.average(clusters, axis=0)
-      distance = dist(center)
+      distance = dist(cluster_center, [0, 0])
 
       if distance < 1e-2 or distance > params.ROBOT_MAX_DIST:
         continue
@@ -74,3 +75,7 @@ class DBSCANDetector():
   @property
   def goal_pose(self):
     return self._pose
+
+  @property
+  def obstacles(self): 
+    return None

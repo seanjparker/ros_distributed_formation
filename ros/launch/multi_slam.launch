@@ -88,7 +88,7 @@
 
   <arg name="open_rviz_config" default="true"/>
   <group if="$(arg open_rviz_config)">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mini_project)/ros/rviz/slam.rviz"/>
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mini_project)/ros/rviz_config/slam.rviz"/>
   </group>
 
 </launch>

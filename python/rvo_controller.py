@@ -28,7 +28,7 @@ def clip_w(val):
     return val
 
 def dist(start, end):
-  return np.sqrt( np.pow(start[X] - n[X], 2) + np.pow(start[Y] - end[Y], 2) )
+  return np.sqrt( (start[X] - end[X])** 2 + (start[Y] - end[Y])**2 )
 
 class RVOController:
   def __init__(self):
@@ -37,13 +37,14 @@ class RVOController:
     self.last_speed = [0, 0]
 
   def get_velocity(self, obstacle_list, pose, goal, dt):
-    if np.sqrt(goal_position[X] ** 2 + goal_position[Y]**2) <= params.ROBOT_MIN_DIST: 
+    if np.sqrt(goal[X] ** 2 + goal[Y]**2) <= params.ROBOT_MIN_DIST: 
       return 0, 0
+    print('1')
 
     if obstacle_list is None:
       return 0, 0
 
-    if dist(goal_position, [0, 0]) < params.ROBOT_MIN_DIST + 2 * params.ROBOT_RADIUS:
+    if dist(goal, [0, 0]) < params.ROBOT_MIN_DIST + 2 * params.ROBOT_RADIUS:
       return 0, 0
 
     X_current = []
@@ -53,7 +54,7 @@ class RVOController:
 
     X_current.append([0,0])
     V_current.append(self.last_speed)
-    goal_pos.append(goal_position)
+    goal_pos.append(goal)
 
     for obstacle in obstacle_list:
       X_current.append([obstacle[0], obstacle[1]])

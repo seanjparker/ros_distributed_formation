@@ -33,6 +33,7 @@ except ImportError:
   raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
 
 from dbscan import DBSCANDetector
+from kalman import KalmanFilterDetector
 from rvo_controller import RVOController
 
 SPEED = .2
@@ -121,6 +122,12 @@ current_control_time = 0
 previous_control_time = 0
 
 def main(args):
+  global current_time
+  global previous_detection_time
+  global previous_publish_time
+
+  global current_control_time
+  global previous_control_time
   robot_id = args.robot
 
   rospy.init_node("{}_navigation".format(robot_id))
@@ -135,7 +142,7 @@ def main(args):
   previous_time = rospy.Time.now().to_sec()
   laser = SimpleLaser(robot_id=robot_id)
 
-  detector = DBSCANDetector(robot_id)
+  detector = KalmanFilterDetector(robot_id) # DBSCANDetector(robot_id)
   controller = RVOController()
 
   # Stop moving message.
@@ -159,17 +166,22 @@ def main(args):
     if not laser.ready:
       rate_limiter.sleep()
       continue
-    
+
     time_since = current_time - previous_detection_time
-    if time_since > 0.3:
+    if time_since > 0.2:
       detector.find_goal(laser.coordinates)
       previous_detection_time = current_time
-      
-    if not detector.ready:
-     rate_limiter.sleep()
-     continue
 
+    if not detector.ready:
+      rate_limiter.sleep()
+      continue
+
+    # if not goal.ready:
+    #   rate_limiter.sleep()
+    #   continue
+    
     goal_position = detector.goal_pose
+    #goal_position = goal.position
     print("goal: {}".format(goal_position))
 
     time_since = current_time - previous_publish_time
@@ -179,7 +191,7 @@ def main(args):
       dt = current_control_time - previous_control_time
       # obstacle list, pose, goal, dt
       u, w = controller.get_velocity(detector.obstacles, np.array([0,0,0], dtype=np.float32), goal_position, dt)
-
+      print(u, w)
       vel_msg = Twist()
       vel_msg.linear.x = u
       vel_msg.angular.z = w
