@@ -134,7 +134,7 @@ def main(args):
 
   # Update control every 100 ms.
   rate_limiter = rospy.Rate(100)
-  publisher = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+  publisher = rospy.Publisher('/{}/cmd_vel'.format(robot_id), Twist, queue_size=5)
   path_publisher = rospy.Publisher('/path', Path, queue_size=1)
   goal = GoalPose()
   frame_id = 0
@@ -182,7 +182,6 @@ def main(args):
     
     goal_position = detector.goal_pose
     #goal_position = goal.position
-    print("goal: {}".format(goal_position))
 
     time_since = current_time - previous_publish_time
     if time_since > 0.2:
@@ -191,7 +190,7 @@ def main(args):
       dt = current_control_time - previous_control_time
       # obstacle list, pose, goal, dt
       u, w = controller.get_velocity(detector.obstacles, np.array([0,0,0], dtype=np.float32), goal_position, dt)
-      print(u, w)
+      print("u: {}, w: {}".format(u, w))
       vel_msg = Twist()
       vel_msg.linear.x = u
       vel_msg.angular.z = w
@@ -220,7 +219,7 @@ def main(args):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument('--robot', default='t_0')
+  parser.add_argument('--robot', default='tb3_0')
   parser.add_argument('--detector')
   parser.add_argument('--controller')
   args, _ = parser.parse_known_args()

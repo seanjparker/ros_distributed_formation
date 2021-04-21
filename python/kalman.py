@@ -107,29 +107,22 @@ class KalmanFilterDetector(object):
       for idx, target in enumerate(self._target_coords): 
         # check if in our field of view -> forward and between some [-x, x] coords
         if target[Y] < tolerance and target[Y] > -1.0*tolerance and target[X] > 0:
-          # compute distance to target: 
-
+          # compute distance to target
           distance = np.nan_to_num(dist(target, self._prev_pose))
           # if np.isnan(self._prev_pose[0])
           # print (target)
           # print (distance)
 
           # look at the objects within a certain radius of the previous pose
-          # -> the objects won't teleport :)
-          if distance < config.MAX_TARGET_DISPLACEMENT:
+          if distance < params.ROBOT_MAX_GAP:
             potential_positions.append(target)
             indexes.append(idx)
-      
-      # now that we've narrowed down things we could search for 
-      # our target 
-      # print ("Potential Positions")
-      # print (potential_positions)
 
       # simple
       if len(potential_positions) > 0:
 
         # we take the closest yet again 
-        min_distance = config.MAX_DISTANCE_TO_TARGET
+        min_distance = params.ROBOT_MAX_DIST
         for idx, target in enumerate(potential_positions):
 
           distance = dist(target, [0, 0])

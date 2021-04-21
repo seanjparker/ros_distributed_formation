@@ -18,14 +18,14 @@ YAW = 2
 epsilon = 1e-3
 epsilon_inv = 1.0 / epsilon
 
-def clip_u(val):
-  return params.SPEED if val > params.SPEED else val
+def clip_u(u):
+  return params.ROBOT_SPEED if u > params.ROBOT_SPEED else u
 
-def clip_w(val):
-  if np.abs(w) > params.SPEED:
-    return w / w * params.SPEED
+def clip_w(w):
+  if np.abs(w) > params.ROBOT_SPEED:
+    return w / w * params.ROBOT_SPEED
   else:
-    return val
+    return w
 
 def dist(start, end):
   return np.sqrt( (start[X] - end[X])** 2 + (start[Y] - end[Y])**2 )
