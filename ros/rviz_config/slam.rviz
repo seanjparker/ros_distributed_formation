@@ -28,7 +28,9 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: ""
+Toolbars:
+  toolButtonStyle: 2
 Visualization Manager:
   Class: ""
   Displays:
@@ -463,5 +465,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1364
-  X: 556
-  Y: 71
+  X: 65
+  Y: 24
