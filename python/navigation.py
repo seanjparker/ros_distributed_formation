@@ -21,7 +21,7 @@ try:
   import params
 except ImportError:
   raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
-  
+
 from kalman import KalmanFilterDetector
 from rvo_controller import RVOController
 from ros_util import *
@@ -40,7 +40,7 @@ def main(args):
   path_publisher = rospy.Publisher('/path', Path, queue_size=1)
 
   # Define and init all the components for the systems to control bots
-  goal = GoalPose(robot_id=robot_id)
+  goal = GoalPose()
   odom = Odom(robot_id=robot_id)
   laser = SimpleLaser(robot_id=robot_id)
   detector = KalmanFilterDetector(robot_id=robot_id) # or DBSCANDetector(robot_id)
