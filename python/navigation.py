@@ -107,8 +107,6 @@ def main(args):
       # Few checks to make sure that we don't move too fast and ignores noise in some of the readings
       if robot_id == 'tb3_0' and u <= 1e-2:
         u = params.ROBOT_LEADER_DEFAULT_SPEED
-      if w < 1e-5:
-        w = 0.0
       print('u: {}, w: {}'.format(u, w))
 
       # Send the control update message to the robot
