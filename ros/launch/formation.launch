@@ -3,6 +3,7 @@
   <arg name="Robot_0" default="tb3_0"/>
   <arg name="Robot_1" default="tb3_1"/>
   <arg name="Robot_2" default="tb3_2"/>
+  <arg name="Robot_3" default="tb3_3"/>
 
   <group ns="$(arg Robot_0)">
     <include file="$(find mini_project)/ros/launch/robot_config.launch" >
@@ -34,6 +35,17 @@
       <arg name="z_pos"       value="0.0"/>
       <arg name="yaw"         value="1.55"/>
       <arg name="tf_prefix"   value="$(arg Robot_2)" />
+    </include>
+  </group>
+
+    <group ns="$(arg Robot_3)">
+    <include file="$(find mini_project)/ros/launch/robot_config.launch" >
+      <arg name="model"       value="burger" doc="model type [burger, waffle, waffle_pi]"/>
+      <arg name="x_pos"       value="1.0"/>
+      <arg name="y_pos"       value="0.0"/>
+      <arg name="z_pos"       value="0.0"/>
+      <arg name="yaw"         value="1.55"/>
+      <arg name="tf_prefix"   value="$(arg Robot_3)" />
     </include>
   </group>
   

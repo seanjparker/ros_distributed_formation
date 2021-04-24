@@ -6,7 +6,7 @@
   <arg name="use_gui" default="true"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-   <arg name="world_name" value="$(find mini_project)/ros/maps/formation.world"/>
+   <arg name="world_name" value="$(find mini_project)/ros/maps/formation4.world"/>
    <arg name="paused" value="true"/>
    <arg name="use_sim_time" value="true"/>
    <arg name="gui" value="$(arg use_gui)"/>

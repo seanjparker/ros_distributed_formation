@@ -11,10 +11,15 @@
     <arg name="ns" value="tb3_2"/>
   </include>
 
+    <include file="$(find turtlebot3_gazebo)/launch/multi_turtlebot3_slam.launch">
+    <arg name="ns" value="tb3_3"/>
+  </include>
+
 
   <arg name="first_robot"  default="tb3_0"/>
   <arg name="second_robot" default="tb3_1"/>
   <arg name="third_robot"  default="tb3_2"/>
+  <arg name="fourth_robot"  default="tb3_3"/>
 
   <group ns="$(arg first_robot)">
     <include file="$(find mini_project)/ros/launch/slam.launch">
@@ -34,20 +39,31 @@
     </include>
   </group>
 
-  <arg name="first_robot_x_pos" default="-1.0"/>
-  <arg name="first_robot_y_pos" default="-1.0"/>
+  <group ns="$(arg fourth_robot)">
+    <include file="$(find mini_project)/ros/launch/slam.launch">
+      <arg name="namespace" value="$(arg fourth_robot)"/>
+    </include>
+  </group>
+
+  <arg name="first_robot_x_pos" default="1.0"/>
+  <arg name="first_robot_y_pos" default="0.9"/>
   <arg name="first_robot_z_pos" default=" 0.0"/>
-  <arg name="first_robot_yaw"   default=" 0.0"/>
+  <arg name="first_robot_yaw"   default=" 1.55"/>
 
-  <arg name="second_robot_x_pos" default="-1.3"/>
-  <arg name="second_robot_y_pos" default="-1.0"/>
+  <arg name="second_robot_x_pos" default="1.0"/>
+  <arg name="second_robot_y_pos" default="0.6"/>
   <arg name="second_robot_z_pos" default=" 0.0"/>
-  <arg name="second_robot_yaw"   default=" 0.0"/>
+  <arg name="second_robot_yaw"   default=" 1.55"/>
 
-  <arg name="third_robot_x_pos" default="-1.6"/>
-  <arg name="third_robot_y_pos" default="-1.0"/>
+  <arg name="third_robot_x_pos" default="1.0"/>
+  <arg name="third_robot_y_pos" default="0.3"/>
   <arg name="third_robot_z_pos" default=" 0.0"/>
-  <arg name="third_robot_yaw"   default=" 0.0"/>
+  <arg name="third_robot_yaw"   default=" 1.55"/>
+
+  <arg name="fourth_robot_x_pos" default="1.0"/>
+  <arg name="fourth_robot_y_pos" default="0.0"/>
+  <arg name="fourth_robot_z_pos" default=" 0.0"/>
+  <arg name="fourth_robot_yaw"   default=" 1.55"/>
 
   <group ns="$(arg first_robot)/map_merge">
     <param name="init_pose_x"   value="$(arg first_robot_x_pos)"/>
@@ -70,6 +86,13 @@
     <param name="init_pose_yaw" value="$(arg third_robot_yaw)"  />
   </group>
 
+  <group ns="$(arg fourth_robot)/map_merge">
+    <param name="init_pose_x"   value="$(arg fourth_robot_x_pos)"/>
+    <param name="init_pose_y"   value="$(arg fourth_robot_y_pos)"/>
+    <param name="init_pose_z"   value="$(arg fourth_robot_z_pos)"/>
+    <param name="init_pose_yaw" value="$(arg fourth_robot_yaw)"  />
+  </group>
+
   <node pkg="multirobot_map_merge" type="map_merge" respawn="false" name="map_merge" output="screen">
     <param name="robot_map_topic" value="map"/>
     <param name="robot_namespace" value="tb3"/>
@@ -85,6 +108,7 @@
   <node pkg="tf" type="static_transform_publisher" name="world_to_$(arg first_robot)_tf_broadcaster"  args="0 0 0 0 0 0 /map /$(arg first_robot)/map 100"/>
   <node pkg="tf" type="static_transform_publisher" name="world_to_$(arg second_robot)_tf_broadcaster" args="0 0 0 0 0 0 /map /$(arg second_robot)/map 100"/>
   <node pkg="tf" type="static_transform_publisher" name="world_to_$(arg third_robot)_tf_broadcaster" args="0 0 0 0 0 0 /map /$(arg third_robot)/map 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="world_to_$(arg fourth_robot)_tf_broadcaster" args="0 0 0 0 0 0 /map /$(arg fourth_robot)/map 100"/>
 
   <arg name="open_rviz_config" default="true"/>
   <group if="$(arg open_rviz_config)">
