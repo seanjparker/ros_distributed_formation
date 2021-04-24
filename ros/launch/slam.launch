@@ -31,11 +31,8 @@
     <param name="use_split_and_merge"    value="true"/>
     <param name="circles_from_visibles"  value="true"/>
     <param name="discard_converted_segments" value="true"/>
-    <!-- Change it -->
     <param name="transform_coordinates"  value="false"/>
-
     <param name="min_group_points"     value="3"/>
-
     <param name="max_group_distance"   value="0.1"/>
     <param name="distance_proportion"  value="0.00628"/>
     <param name="max_split_distance"   value="0.2"/>
@@ -59,8 +56,6 @@
     <param name="measurement_variance"    value="1.0"/>  
 
     <param name="frame_id"                value="map"/>
-
-    <!-- <remap from="tracked_obstacles" to="obstacles"/> -->
   </node>
 
   <node name="obstacle_publisher" pkg="nodelet" type="nodelet" args="load obstacle_detector/ObstaclePublisher nodelet_manager">

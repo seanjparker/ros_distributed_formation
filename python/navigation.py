@@ -172,9 +172,9 @@ def main(args):
       detector.find_goal(laser.coordinates)
       previous_detection_time = current_time
 
-    if not detector.ready:
-      rate_limiter.sleep()
-      continue
+    # if not detector.ready:
+    #  rate_limiter.sleep()
+    #  continue
 
     # if not goal.ready:
     #   rate_limiter.sleep()
@@ -189,7 +189,14 @@ def main(args):
       current_control_time = rospy.Time.now().to_sec()
       dt = current_control_time - previous_control_time
       # obstacle list, pose, goal, dt
-      u, w = controller.get_velocity(detector.obstacles, np.array([0,0,0], dtype=np.float32), goal_position, dt)
+      u = 0.0
+      w = 0.0
+      if detector.ready:
+        u, w = controller.get_velocity(detector.obstacles, np.array([0,0,0], dtype=np.float32), goal_position, dt)
+      if robot_id == 'tb3_0' and u <= 1e-2:
+        u = params.ROBOT_LEADER_DEFAULT_SPEED
+      if w < 1e-5:
+        w = 0.0
       print("u: {}, w: {}".format(u, w))
       vel_msg = Twist()
       vel_msg.linear.x = u
