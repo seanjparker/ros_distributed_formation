@@ -14,143 +14,117 @@ try:
 except ImportError:
   raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
 
+X = 0
+Y = 1
+YAW = 2
+
 def dist(start, end):
   return np.sqrt( (start[X] - end[X]) ** 2 + (start[Y] - end[Y]) ** 2 )
 
-X=0
-Y=1
-YAW=2
 class KalmanFilterDetector(object):
-
   def __init__(self, robot_id):
     self._namespace = robot_id
     self._pose = np.array([np.nan, np.nan], dtype=np.float32)
-    self._speed = np.array([np.nan, np.nan], dtype=np.float32)
+    self._vel = np.array([np.nan, np.nan], dtype=np.float32)
     self._prev_pose = np.array([np.nan, np.nan], dtype=np.float32)
-    self._prev_speed = np.array([np.nan, np.nan], dtype=np.float32)
-    self._obstacles     = []
-    self._target_coords = []
-    self._target_speeds = []
-    self._detectFollowable = True
-    rospy.Subscriber(robot_id + '/tracked_obstacles', Obstacles, self.callback)
+    self._prev_vel = np.array([np.nan, np.nan], dtype=np.float32)
+    self._obstacles = []
+    self._tracking_pose = []
+    self._tracking_vel = []
+    self.has_detected = True
+    rospy.Subscriber('/{}/tracked_obstacles'.format(robot_id), Obstacles, self.ros_callback)
 
-  # filtering the objects
-  def callback(self, msg):
+  def ros_callback(self, msg):
     obstacles = []
-    target_coords = []
-    target_speeds = []
+    target_poses = []
+    target_vels = []
 
-    for idx, circle in enumerate(msg.circles):
+    for i, _ in enumerate(msg.circles):
+      obstacles.append(np.array([msg.circles[i].center.x, 
+        msg.circles[i].center.y, 
+        msg.circles[i].velocity.x, 
+        msg.circles[i].velocity.y, 
+        msg.circles[i].radius, 
+        msg.circles[i].true_radius
+      ], dtype=np.float64))
 
-      obstacles.append(np.array([msg.circles[idx].center.x, 
-                                msg.circles[idx].center.y, 
-                                msg.circles[idx].velocity.x, 
-                                msg.circles[idx].velocity.y, 
-                                msg.circles[idx].radius, 
-                                msg.circles[idx].true_radius
-                                ], dtype=np.float64))
+      if msg.circles[i].true_radius < 4 * params.TRACKED_OBJ_RAD:
+        target_poses.append(
+          np.array([msg.circles[i].center.x, msg.circles[i].center.y], dtype=np.float64)
+        )
 
-      # filter out obstacles which are too big
-      if msg.circles[idx].true_radius < 4*params.TRACKED_OBJ_RAD:
-        target_coords.append(np.array([msg.circles[idx].center.x, 
-                                      msg.circles[idx].center.y
-                                      ], dtype=np.float64))
-
-        target_speeds.append(np.array([msg.circles[idx].velocity.x, 
-                                      msg.circles[idx].velocity.y
-                                      ], dtype=np.float64))
+        target_vels.append(
+          np.array([msg.circles[i].velocity.x, msg.circles[i].velocity.y], dtype=np.float64)
+        )
     self._obstacles = obstacles
-    self._target_coords = target_coords
-    self._target_speeds = target_speeds
+    self._tracking_pose = target_poses
+    self._tracking_vel = target_vels
 
 
-  # based on the filtered obstacles, last tracked obstacle position, etc, find the goal 
-  def find_goal(self, coordinates):
-    print ("(Avg dec) -- Finding goal")
-
+  def detect(self, coordinates):
     pose = []
-    speed = []
+    vel = []
 
-    if self._target_coords == None:
-      print ("(Avg dec) -- NO TARGETS")
+    if self._tracking_pose == None:
       return
 
-    # first time we are trying to detect smth
-    if self._detectFollowable:
-      tolerance = params.VIEW_DIST
-
+    if self.has_detected:
+      robot_view = params.VIEW_DIST
       min_distance = params.ROBOT_MAX_DIST
-      for idx, target in enumerate(self._target_coords): 
-        
-        # check if in our field of view -> forward and between some [-x, x] coords
-        # the coords of the object finder are reversed 
-        if target[Y] < tolerance and target[Y] > -1.0*tolerance and target[X] > 0:
-          # compute distance to target: 
-          # print (target)
-          distance = dist(target, [0, 0])
 
-          # get the closest initial obstacle and consider it as 
-          # the object that should be followed 
-          if distance < min_distance:
-            min_distance = distance
+      # Find the obstacle that has the minimum distance to our robot
+      # The results from the obstacle_detector package are reversed which means we have to go backwards
+      # through the search, this only happens for the first obstacle, in the following detetions we look
+      # for the clostest obstacle from the last position
+      for i, target in enumerate(self._tracking_pose):   
+        if target[Y] < robot_view and target[Y] > -1.0 * robot_view and target[X] > 0:
+          if dist(target, [0, 0]) < min_distance:
+            self.has_detected = False
+            speed = self._tracking_vel[i]
+            min_distance = dist(target, [0, 0])
             pose = target
-            speed = self._target_speeds[idx]
-            self._detectFollowable = False
 
     else:
-      tolerance = params.ROBOT_MAX_DIST*2
+      robot_view = params.ROBOT_MAX_DIST * 2
 
-      potential_positions = []
-      indexes             = []
+      candidate_poses = []
+      candidate_is = []
 
-
-      for idx, target in enumerate(self._target_coords): 
-        # check if in our field of view -> forward and between some [-x, x] coords
-        if target[Y] < tolerance and target[Y] > -1.0*tolerance and target[X] > 0:
-          # compute distance to target
+      for i, target in enumerate(self._tracking_pose): 
+        if target[Y] < robot_view and target[Y] > -1.0*robot_view and target[X] > 0:
+          # Calculate the distance between the candidate and previous pose
+          # Need to take into account that the distance can be invalid
           distance = np.nan_to_num(dist(target, self._prev_pose))
-          # if np.isnan(self._prev_pose[0])
-          # print (target)
-          # print (distance)
 
-          # look at the objects within a certain radius of the previous pose
+          # Wwe only need to consider the candidates that are close enough (predefined by the constants)
           if distance < params.ROBOT_MAX_GAP:
-            potential_positions.append(target)
-            indexes.append(idx)
+            candidate_poses.append(target)
+            candidate_is.append(i)
 
-      # simple
-      if len(potential_positions) > 0:
-
-        # we take the closest yet again 
+      if len(candidate_poses) > 0:
+        # Get the candidate pose with the minimum distance compared to the previous pose
         min_distance = params.ROBOT_MAX_DIST
-        for idx, target in enumerate(potential_positions):
-
-          distance = dist(target, [0, 0])
-          if distance < min_distance:
+        for i, target in enumerate(candidate_poses):
+          if dist(target, [0, 0]) < min_distance:
+            vel = self._tracking_vel[candidate_is[i]]
             pose = target
-            speed = self._target_speeds[indexes[idx]]
-            min_distance = distance
-      
+            min_distance = dist(target, [0, 0])
       else: 
-        # we have lost the target
-        print ("(Avg dec) -- Target Lost")
-        self._detectFollowable = True
-        self._pose = np.array([0,0])
+        self.has_detected = True
+        self._pose = np.array([0, 0])
 
-    if len(pose) > 0: 
+    if len(pose) > 0:
       self._prev_pose = self._pose
-      self._prev_speed = self._speed
+      self._prev_vel = self._vel
       self._pose = pose
-      self._speed = speed
-      print ("(Avg dec) -- Target found")
-      print (pose)
+      self._vel = vel
 
   @property
   def ready(self):
     return not np.isnan(self._pose[0])
 
   @property
-  def goal_pose(self):
+  def track_to(self):
     return self._pose
 
   @property

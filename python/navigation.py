@@ -81,11 +81,11 @@ def main(args):
     # Use the defined detector to find the goal pose using the pre-defined constraints
     time_since = current_time - last_det_time
     if time_since > 0.2:
-      detector.find_goal(laser.coordinates)
+      detector.detect(laser.coordinates)
       last_det_time = current_time
 
     # Get the goal position from the detector, we will use this for our instantaneous path planning
-    goal_position = detector.goal_pose
+    goal_position = detector.track_to
     #goal_position = goal.position
 
     # We limit the rate at which we can send updates to the robots control params

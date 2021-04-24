@@ -10,7 +10,6 @@ try:
 except ImportError:
   raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
 
-
 X = 0
 Y = 1
 YAW = 2
@@ -37,35 +36,25 @@ class RVOController:
     self.last_speed = [0, 0]
 
   def get_velocity(self, obstacle_list, pose, goal, dt):
-    if np.sqrt(goal[X] ** 2 + goal[Y]**2) <= params.ROBOT_MIN_DIST: 
-      return 0, 0
-    print('1')
-
-    if obstacle_list is None:
+    if dist(goal, [0, 0]) <= params.ROBOT_MIN_DIST or obstacle_list is None or dist(goal, [0, 0]) < params.ROBOT_MIN_DIST + 2 * params.ROBOT_RADIUS: 
       return 0, 0
 
-    if dist(goal, [0, 0]) < params.ROBOT_MIN_DIST + 2 * params.ROBOT_RADIUS:
-      return 0, 0
-
-    X_current = []
-    V_current = []
-    goal_pos = []
+    X_current = [[0, 0]]
+    V_current = [self.last_speed]
+    goal_pos = [goal]
     V_max = [params.ROBOT_SPEED / 2 for i in range(len(obstacle_list) + 1)]
 
-    X_current.append([0,0])
-    V_current.append(self.last_speed)
-    goal_pos.append(goal)
-
+    # define using the previously detected obstacles in the map
     for obstacle in obstacle_list:
       X_current.append([obstacle[0], obstacle[1]])
       V_current.append([obstacle[2], obstacle[3]])
-      goal_pos.append([0,0])
+      goal_pos.append([0, 0])
 
-    # do rvo update
+    # RVO updates
     V_des = rvo.compute_V_des(X_current, goal_pos, V_max)
     V_current = rvo.RVO_update(X_current, V_des, V_current, self._rvo_model)
     
-    # do feedback linerisation
+    # compute control parameters from the RVO results
     velocity = V_current[0]
     yaw = np.arctan2(velocity[Y], velocity[X])
     u = velocity[X] * np.cos(yaw) + velocity[Y] * np.sin(yaw)
