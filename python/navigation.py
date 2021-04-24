@@ -25,6 +25,8 @@ from nav_msgs.msg import Path
 from tf.transformations import euler_from_quaternion
 from sensor_msgs.msg import LaserScan
 
+from nav_msgs.msg import Odometry
+
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../')
 sys.path.insert(0, directory)
 try:
@@ -113,6 +115,18 @@ class SimpleLaser(object):
   def coordinates(self):
     return self._coordinates
 
+class Odom(object):
+  def __init__(self, robot_id=params.R0):
+    self._name_space = robot_id
+    self._pose = [0.0, 0.0, 0.0]
+    odom_sub = rospy.Subscriber('/{}/odom'.format(robot_id), Odometry, self.callback)
+
+  def callback(self, msg):
+    self._pose = [msg.pose.pose.position.x, msg.pose.pose.position.y]
+
+  @property
+  def pose(self):
+    return self._pose
 
 current_time = 0
 previous_detection_time = 0
@@ -137,6 +151,7 @@ def main(args):
   publisher = rospy.Publisher('/{}/cmd_vel'.format(robot_id), Twist, queue_size=5)
   path_publisher = rospy.Publisher('/path', Path, queue_size=1)
   goal = GoalPose()
+  odom = Odom(robot_id=robot_id)
   frame_id = 0
   current_path = []
   previous_time = rospy.Time.now().to_sec()
@@ -203,6 +218,14 @@ def main(args):
       vel_msg.angular.z = w
       publisher.publish(vel_msg)
       previous_publish_time = current_time
+
+      def dist(start, end):
+        return np.sqrt( (start[0] - end[0]) ** 2 + (start[1] - end[1]) ** 2 )
+
+      sep_dist = dist(odom.pose, goal_position)
+      sep_dist_path = "./logs/{}_sep_dist.txt".format(robot_id)
+      with open(sep_dist_path, 'a+') as fp:
+        fp.write('\n' + str(current_control_time) + ' ' + str(sep_dist))
 
 
     # Publish path to RViz.
