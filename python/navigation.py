@@ -21,8 +21,7 @@ try:
   import params
 except ImportError:
   raise ImportError('Unable to import params.py. Make sure this file is in "{}"'.format(directory))
-
-from dbscan import DBSCANDetector
+  
 from kalman import KalmanFilterDetector
 from rvo_controller import RVOController
 from ros_util import *
